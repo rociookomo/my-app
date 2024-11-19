@@ -1,37 +1,52 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import React, { useState } from 'react';
+import { View } from 'react-native';
+import MenuManagementScreen from './screens/MenuManagementScreen';
+import GuestScreen from './screens/GuestViewScreen';
+import MenuDisplayScreen from './screens/MenuDisplayScreen';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+const Layout: React.FC = () => {
+  const [currentScreen, setCurrentScreen] = useState<string>('MenuManagement');
+  const [menuItems, setMenuItems] = useState<any[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<string>(''); // Define selectedCourse state
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+  // Function to switch screens
+  const switchScreen = (screen: string) => {
+    setCurrentScreen(screen);
+  };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  // Function to add a menu item
+  const addMenuItem = (item: any) => {
+    setMenuItems([...menuItems, item]);
+  };
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+  // Function to remove a menu item
+  const onRemoveItem = (index: number) => {
+    const updatedMenuItems = menuItems.filter((_, i) => i !== index);
+    setMenuItems(updatedMenuItems);
+  };
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <View style={{ flex: 1 }}>
+      {currentScreen === 'MenuManagement' && (
+        <MenuManagementScreen
+          switchScreen={switchScreen}
+          addMenuItem={addMenuItem}
+          selectedCourse={selectedCourse} // Pass selectedCourse
+          setSelectedCourse={setSelectedCourse} // Pass setSelectedCourse
+        />
+      )}
+      {currentScreen === 'Guest' && (
+        <GuestScreen switchScreen={switchScreen} menuItems={menuItems} />
+      )}
+      {currentScreen === 'MenuDisplay' && (
+        <MenuDisplayScreen
+          route={{ params: { menuItems } }}
+          onRemoveItem={onRemoveItem}
+          switchScreen={switchScreen}
+        />
+      )}
+    </View>
   );
-}
+};
+
+export default Layout;
