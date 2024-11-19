@@ -15,13 +15,38 @@ interface MenuManagementScreenProps {
   setSelectedCourse: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({ switchScreen, addMenuItem, selectedCourse, setSelectedCourse }) => {
+const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
+  switchScreen,
+  addMenuItem,
+  selectedCourse,
+  setSelectedCourse,
+}) => {
   const [dishName, setDishName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [price, setPrice] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const addItem = () => {
-    if (!dishName || !description || !price || !selectedCourse) return;
+    // Validate inputs
+    if (!dishName || !/^[A-Za-z\s]+$/.test(dishName)) {
+      setErrorMessage('Dish name must contain only text.');
+      return;
+    }
+    if (!description || !/^[A-Za-z\s]+$/.test(description)) {
+      setErrorMessage('Description must contain only text.');
+      return;
+    }
+    if (!price || isNaN(Number(price))) {
+      setErrorMessage('Price must be a number.');
+      return;
+    }
+    if (!selectedCourse) {
+      setErrorMessage('Please select a course (Starter, Main, or Dessert).');
+      return;
+    }
+
+    // Clear error message if all validations pass
+    setErrorMessage('');
 
     const newItem: MenuItem = {
       dishName,
@@ -44,7 +69,9 @@ const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({ switchScree
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Manage Menu</Text>
-      
+
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
       <TextInput
         style={styles.input}
         placeholder="Dish Name"
@@ -70,13 +97,22 @@ const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({ switchScree
 
       <View style={styles.buttonContainer}>
         <Text style={styles.subHeader}>Select Course:</Text>
-        <TouchableOpacity style={[styles.courseButton, selectedCourse === 'Starter' && styles.activeButton]} onPress={() => setSelectedCourse('Starter')}>
+        <TouchableOpacity
+          style={[styles.courseButton, selectedCourse === 'Starter' && styles.activeButton]}
+          onPress={() => setSelectedCourse('Starter')}
+        >
           <Text style={styles.buttonText}>Starter</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.courseButton, selectedCourse === 'Main' && styles.activeButton]} onPress={() => setSelectedCourse('Main')}>
+        <TouchableOpacity
+          style={[styles.courseButton, selectedCourse === 'Main' && styles.activeButton]}
+          onPress={() => setSelectedCourse('Main')}
+        >
           <Text style={styles.buttonText}>Main</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.courseButton, selectedCourse === 'Dessert' && styles.activeButton]} onPress={() => setSelectedCourse('Dessert')}>
+        <TouchableOpacity
+          style={[styles.courseButton, selectedCourse === 'Dessert' && styles.activeButton]}
+          onPress={() => setSelectedCourse('Dessert')}
+        >
           <Text style={styles.buttonText}>Dessert</Text>
         </TouchableOpacity>
       </View>
@@ -90,9 +126,7 @@ const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({ switchScree
 
       <FlatList
         data={[{ course: selectedCourse }]}
-        renderItem={({ item }) => (
-          <Text style={styles.courseText}>Selected Course: {item.course}</Text>
-        )}
+        renderItem={({ item }) => <Text style={styles.courseText}>Selected Course: {item.course}</Text>}
         keyExtractor={(_, index) => index.toString()}
       />
     </View>
@@ -103,7 +137,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#ffe6f2',  // Light pink background
+    backgroundColor: '#ffe6f2', // Light pink background
   },
   header: {
     fontSize: 30,
@@ -175,6 +209,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#d147a3',
+    textAlign: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginBottom: 10,
     textAlign: 'center',
   },
 });
