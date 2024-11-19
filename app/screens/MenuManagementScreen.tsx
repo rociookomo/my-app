@@ -25,9 +25,9 @@ const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
   const [description, setDescription] = useState<string>('');
   const [price, setPrice] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [recentItems, setRecentItems] = useState<MenuItem[]>([]);
 
   const addItem = () => {
-    // Validate inputs
     if (!dishName || !/^[A-Za-z\s]+$/.test(dishName)) {
       setErrorMessage('Dish name must contain only text.');
       return;
@@ -45,7 +45,6 @@ const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
       return;
     }
 
-    // Clear error message if all validations pass
     setErrorMessage('');
 
     const newItem: MenuItem = {
@@ -56,6 +55,10 @@ const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
     };
 
     addMenuItem(newItem);
+
+    // Update recent items
+    setRecentItems((prevItems) => [newItem, ...prevItems].slice(0, 5));
+
     clearInputs();
   };
 
@@ -125,9 +128,20 @@ const MenuManagementScreen: React.FC<MenuManagementScreenProps> = ({
       </TouchableOpacity>
 
       <FlatList
-        data={[{ course: selectedCourse }]}
-        renderItem={({ item }) => <Text style={styles.courseText}>Selected Course: {item.course}</Text>}
-        keyExtractor={(_, index) => index.toString()}
+        data={recentItems}
+        renderItem={({ item }) => (
+          <View style={styles.recentItem}>
+            <Text style={styles.recentText}>
+              {item.dishName} ({item.course}) - {item.price} ZAR
+            </Text>
+          </View>
+        )}
+        keyExtractor={(item, index) => index.toString()}
+        ListHeaderComponent={
+          recentItems.length > 0 ? (
+            <Text style={styles.recentHeader}>Recently Added Items:</Text>
+          ) : null
+        }
       />
     </View>
   );
@@ -137,7 +151,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#ffe6f2', // Light pink background
+    backgroundColor: '#ffe6f2',
   },
   header: {
     fontSize: 30,
@@ -205,17 +219,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  courseText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#d147a3',
-    textAlign: 'center',
-  },
   errorText: {
     color: 'red',
     fontSize: 14,
     marginBottom: 10,
     textAlign: 'center',
+  },
+  recentHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#d147a3',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  recentItem: {
+    backgroundColor: '#fff0f5',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 5,
+  },
+  recentText: {
+    fontSize: 16,
+    color: '#d147a3',
   },
 });
 
