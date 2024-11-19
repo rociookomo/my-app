@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 
 interface MenuItem {
   dishName: string;
@@ -14,7 +14,6 @@ interface GuestScreenProps {
 }
 
 const GuestScreen: React.FC<GuestScreenProps> = ({ switchScreen, menuItems }) => {
-  // Hardcoded menu items
   const hardcodedItems: MenuItem[] = [
     { dishName: 'Caesar Salad', description: 'Romaine lettuce with Caesar dressing', course: 'Starter', price: 50 },
     { dishName: 'Grilled Chicken', description: 'Chicken breast with herbs', course: 'Main', price: 120 },
@@ -22,16 +21,24 @@ const GuestScreen: React.FC<GuestScreenProps> = ({ switchScreen, menuItems }) =>
   ];
 
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
 
-  // Combine hardcoded items and menu items from MenuManagementScreen
   const combinedMenuItems = [...hardcodedItems, ...menuItems];
 
-  // Filter menu items based on selected course
-  const filteredItems = selectedCourse
-    ? combinedMenuItems.filter((item) => item.course === selectedCourse)
-    : combinedMenuItems;
+  // Filter and sort items based on user input
+  const filteredItems = combinedMenuItems
+    .filter((item) => {
+      const matchesCourse = selectedCourse ? item.course === selectedCourse : true;
+      const matchesSearch = item.dishName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCourse && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (!sortOrder) return 0;
+      return sortOrder === 'asc' ? a.price - b.price : b.price - a.price;
+    });
 
-  // Render function for each menu item
   const renderItem = ({ item }: { item: MenuItem }) => (
     <View style={styles.menuItem}>
       <Text style={styles.itemName}>{item.dishName}</Text>
@@ -47,8 +54,17 @@ const GuestScreen: React.FC<GuestScreenProps> = ({ switchScreen, menuItems }) =>
       <View style={styles.banner}>
         <Text style={styles.bannerText}>Welcome to the Guest Menu!</Text>
       </View>
-      
-      {/* Course filter buttons with icons */}
+
+      {/* Search Bar */}
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search menu items..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholderTextColor="#ffb3b3"
+      />
+
+      {/* Course Filter Buttons */}
       <View style={styles.filterButtons}>
         {['All', 'Starter', 'Main', 'Dessert'].map((course) => (
           <TouchableOpacity
@@ -61,21 +77,34 @@ const GuestScreen: React.FC<GuestScreenProps> = ({ switchScreen, menuItems }) =>
             ]}
             onPress={() => setSelectedCourse(course === 'All' ? null : course)}
           >
-            {/* Placeholder icons */}
-            <Text style={styles.icon}>{course === 'Starter' ? '🍜' : course === 'Main' ? '🍲' : course === 'Dessert' ? '🍰' : '📋'}</Text>
+            <Text style={styles.icon}>
+              {course === 'Starter' ? '🍜' : course === 'Main' ? '🍲' : course === 'Dessert' ? '🍰' : '📋'}
+            </Text>
             <Text style={styles.buttonText}>{course}</Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Menu item list */}
-      <FlatList
-        data={filteredItems}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
-      />
+      {/* Sort Options */}
+      <View style={styles.sortContainer}>
+        <Text style={styles.sortText}>Sort by Price:</Text>
+        <Button title="Ascending" onPress={() => setSortOrder('asc')} />
+        <Button title="Descending" onPress={() => setSortOrder('desc')} />
+        <Button title="Clear" onPress={() => setSortOrder(null)} />
+      </View>
 
-      {/* Back to Menu Management button */}
+      {/* Menu List */}
+      {filteredItems.length > 0 ? (
+        <FlatList
+          data={filteredItems}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      ) : (
+        <Text style={styles.emptyStateText}>No menu items match your criteria. Try adjusting filters or searching!</Text>
+      )}
+
+      {/* Back Button */}
       <Button title="Back to Menu Management" onPress={() => switchScreen('MenuManagement')} />
     </View>
   );
@@ -99,10 +128,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ff6699',
   },
-  header: {
-    fontSize: 24,
+  searchBar: {
+    height: 40,
+    borderColor: '#ff99cc',
+    borderWidth: 1,
+    borderRadius: 10,
     marginBottom: 20,
-    fontWeight: 'bold',
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
     color: '#ff6699',
   },
   menuItem: {
@@ -140,6 +173,22 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 18,
+  },
+  sortContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  sortText: {
+    fontSize: 16,
+    color: '#ff6699',
+    fontWeight: 'bold',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: 'gray',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 
