@@ -9,28 +9,20 @@ interface MenuItem {
 }
 
 interface GuestScreenProps {
-  switchScreen: (screen: string) => void;
   menuItems: MenuItem[]; // Imported menu items from MenuManagementScreen
 }
 
-const GuestScreen: React.FC<GuestScreenProps> = ({ switchScreen, menuItems }) => {
-  const hardcodedItems: MenuItem[] = [
-    { dishName: 'Caesar Salad', description: 'Romaine lettuce with Caesar dressing', course: 'Starter', price: 50 },
-    { dishName: 'Grilled Chicken', description: 'Chicken breast with herbs', course: 'Main', price: 120 },
-    { dishName: 'Chocolate Cake', description: 'Rich chocolate dessert', course: 'Dessert', price: 70 },
-  ];
-
+const GuestScreen: React.FC<GuestScreenProps> = ({ menuItems }) => {
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
 
-  const combinedMenuItems = [...hardcodedItems, ...menuItems];
-
   // Filter and sort items based on user input
-  const filteredItems = combinedMenuItems
+  const filteredItems = menuItems
     .filter((item) => {
       const matchesCourse = selectedCourse ? item.course === selectedCourse : true;
-      const matchesSearch = item.dishName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch =
+        item.dishName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCourse && matchesSearch;
     })
@@ -90,7 +82,6 @@ const GuestScreen: React.FC<GuestScreenProps> = ({ switchScreen, menuItems }) =>
         <Text style={styles.sortText}>Sort by Price:</Text>
         <Button title="Ascending" onPress={() => setSortOrder('asc')} />
         <Button title="Descending" onPress={() => setSortOrder('desc')} />
-        <Button title="Clear" onPress={() => setSortOrder(null)} />
       </View>
 
       {/* Menu List */}
@@ -103,9 +94,6 @@ const GuestScreen: React.FC<GuestScreenProps> = ({ switchScreen, menuItems }) =>
       ) : (
         <Text style={styles.emptyStateText}>No menu items match your criteria. Try adjusting filters or searching!</Text>
       )}
-
-      {/* Back Button */}
-      <Button title="Back to Menu Management" onPress={() => switchScreen('MenuManagement')} />
     </View>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, FlatList, Button, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { StyleSheet, Text, View, FlatList, Button, TouchableOpacity, TextInput } from 'react-native';
 
 interface MenuItem {
   dishName: string;
@@ -39,13 +39,6 @@ const MenuDisplayScreen: React.FC<MenuDisplayScreenProps> = ({ route, onRemoveIt
       if (sortOption === 'priceDesc') return b.price - a.price;
       return a.dishName.localeCompare(b.dishName); // Default: alphabetical
     });
-
-  const clearAllItems = () => {
-    Alert.alert('Clear All Items', 'Are you sure you want to remove all menu items?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Yes', onPress: () => menuItems.forEach((_, index) => onRemoveItem(index)) },
-    ]);
-  };
 
   const renderItem = ({ item, index }: { item: MenuItem; index: number }) => (
     <View style={styles.menuItem}>
@@ -97,8 +90,10 @@ const MenuDisplayScreen: React.FC<MenuDisplayScreenProps> = ({ route, onRemoveIt
       {/* Navigation Buttons */}
       <View style={styles.navigationButtons}>
         <Button title="Add Menu Item" color="#ff80bf" onPress={() => switchScreen('MenuManagement')} />
+      </View>
+
+      <View style={styles.centeredButton}>
         <Button title="Guest Menu" color="#ff80bf" onPress={() => switchScreen('Guest')} />
-        <Button title="Clear All" color="#ff6666" onPress={clearAllItems} />
       </View>
     </View>
   );
@@ -186,6 +181,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'gray',
     textAlign: 'center',
+    marginTop: 20,
+  },
+  centeredButton: {
+    alignItems: 'center',
     marginTop: 20,
   },
 });
